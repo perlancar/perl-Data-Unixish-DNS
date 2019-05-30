@@ -21,8 +21,8 @@ $SPEC{resolve} = {
 
 Note that by default names are resolved in parallel (`queue_size` is 30) and the
 results will not be shown in the order they are received. If you want the same
-order, you can set `order` to true, but currently you will have to wait until
-the whole list is resolved.
+order, you can set `order` to true (not yet implemented), but currently you will
+have to wait until the whole list is resolved.
 
 _
     args => {
@@ -62,9 +62,8 @@ sub resolve {
     );
 
     while (my ($index, $item) = each @$in) {
-        chomp $item;
         $resolver->add({
-            (Nameservers => [$args{server}]) x !!defined($args{server}),
+            #(Nameservers => [$args{server}]) x !!defined($args{server}),
             Callback    => sub {
                 my $pkt = shift;
                 return unless defined $pkt;
@@ -79,11 +78,13 @@ sub resolve {
                         $r->address;
                 }
                 for (sort keys %addrs) {
-                    push @$out, "$item: $addrs{$_}\n";
+                    push @$out, "$item: $addrs{$_}";
                 }
-            }, $item, $type
-        });
+            }
+        }, $item, $type);
     }
+
+    # XXX how to show results as we have them? we must not await here
     $resolver->await;
 
     [200, "OK"];
